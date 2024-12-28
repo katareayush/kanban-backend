@@ -1,6 +1,6 @@
 const express = require("express");
 const Board = require("../models/Board");
-const auth = require("../middleware/auth");  // Import the authentication middleware
+const auth = require("../middleware/auth");
 const router = express.Router();
 
 // Create Board
@@ -52,6 +52,25 @@ router.put("/:boardId", auth, async (req, res) => {
     res.status(200).json(board);
   } catch (error) {
     res.status(500).json({ message: "Error updating board", error });
+  }
+});
+
+// GET a single board by ID
+router.get("/:boardId", auth, async (req, res) => {
+  try {
+    const board = await Board.findById(req.params.boardId);
+    if (!board) {
+      return res.status(404).json({ message: "Board not found" });
+    }
+    
+    // Ensure the board belongs to the authenticated user
+    if (board.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    res.status(200).json(board);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching board", error });
   }
 });
 

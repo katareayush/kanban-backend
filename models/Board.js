@@ -27,6 +27,10 @@ const boardSchema = new mongoose.Schema(
               type: String,
               required: false,
             },
+            _id: {
+                type: mongoose.Schema.Types.ObjectId,
+                default: mongoose.Types.ObjectId,
+              },
             status: {
               type: String,
               enum: ["To Do", "In Progress", "Done"],
