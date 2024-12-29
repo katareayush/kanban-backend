@@ -35,7 +35,7 @@ router.get("/", auth, async (req, res) => {
 // Update a Board (e.g., adding/removing columns, tasks)
 router.put("/:boardId", auth, async (req, res) => {
   const { boardId } = req.params;
-  const { columns } = req.body;
+  const { columns, newColumn } = req.body;  // Accept both new and existing columns
 
   try {
     const board = await Board.findById(boardId);
@@ -46,14 +46,27 @@ router.put("/:boardId", auth, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    board.columns = columns || board.columns;
-    await board.save();
+    // Handle Column Addition
+    if (newColumn) {
+      const columnExists = board.columns.some(col => col.title === newColumn.title);
+      if (columnExists) {
+        return res.status(400).json({ message: "Column already exists" });
+      }
+      board.columns.push({ title: newColumn.title, tasks: [] });
+    }
 
+    // Update Existing Columns
+    if (columns) {
+      board.columns = columns;
+    }
+
+    await board.save();
     res.status(200).json(board);
   } catch (error) {
     res.status(500).json({ message: "Error updating board", error });
   }
 });
+
 
 // GET a single board by ID
 router.get("/:boardId", auth, async (req, res) => {
